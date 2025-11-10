@@ -1,6 +1,5 @@
 package com.example.forumapp.ui
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -12,23 +11,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.forumapp.R
 import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(
+fun ForgotPasswordScreen(
     modifier: Modifier = Modifier,
-    onRegisterSuccess: () -> Unit,
-    onLoginClick: () -> Unit
+    onEmailSent: () -> Unit, // Navega de volta após o sucesso
+    onBackClick: () -> Unit  // Navega de volta se o usuário desistir
 ) {
     var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    val auth = FirebaseAuth.getInstance()
-    val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
 
     Column(
         modifier = modifier
@@ -43,15 +40,26 @@ fun RegisterScreen(
             contentDescription = "Logo Léxico"
         )
         Spacer(modifier = Modifier.height(32.dp))
+
         Text(
-            text = "Faça o seu cadastro",
+            text = "Redefinir a senha", // Título da tela
             style = MaterialTheme.typography.headlineMedium
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Enviaremos um link para o seu e-mail para você redefinir sua senha.",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
         Spacer(modifier = Modifier.height(24.dp))
 
         // Campo de E-mail
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
-            Text("E-mail:", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = "Confirme seu E-mail:",
+                style = MaterialTheme.typography.bodyMedium
+            )
             Spacer(modifier = Modifier.height(4.dp))
             TextField(
                 value = email,
@@ -69,51 +77,25 @@ fun RegisterScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Campo de Senha
-        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
-            Text("Senha:", style = MaterialTheme.typography.bodyMedium)
-            Spacer(modifier = Modifier.height(4.dp))
-            TextField(
-                value = password,
-                onValueChange = { password = it },
-                placeholder = { Text("Digite sua senha") },
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 1,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                readOnly = isLoading
-            )
-        }
-
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Botão "Registrar"
+        // Botão "Enviar"
         Button(
             onClick = {
-                if (email.isNotBlank() && password.isNotBlank()) {
+                if (email.isNotBlank()) {
                     isLoading = true
-                    auth.createUserWithEmailAndPassword(email, password)
+                    auth.sendPasswordResetEmail(email)
                         .addOnCompleteListener { task ->
                             isLoading = false
                             if (task.isSuccessful) {
-                                Log.d("RegisterScreen", "Conta criada!")
-                                Toast.makeText(context, "Conta criada!", Toast.LENGTH_SHORT).show()
-                                onRegisterSuccess()
+                                Toast.makeText(context, "E-mail de redefinição enviado!", Toast.LENGTH_LONG).show()
+                                onEmailSent() // Navega de volta
                             } else {
-                                Log.w("RegisterScreen", "Falha ao criar", task.exception)
-                                Toast.makeText(context, "Falha ao criar: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "Falha: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                             }
                         }
                 } else {
-                    Toast.makeText(context, "Preencha os campos", Toast.LENGTH_SHORT).show()
-
+                    Toast.makeText(context, "Por favor, insira seu e-mail", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -125,18 +107,16 @@ fun RegisterScreen(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Registrar")
+                Text("Enviar e-mail de redefinição")
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Link para Login
+        // Botão "Voltar"
         TextButton(
-            onClick = onLoginClick,
+            onClick = onBackClick,
             enabled = !isLoading
         ) {
-            Text("Já tem conta? Faça o login")
+            Text("Voltar para o Login")
         }
     }
 }

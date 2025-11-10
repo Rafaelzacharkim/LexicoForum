@@ -12,5 +12,5 @@ data class Post(
     val authorName: String = "",
     val topic: String = "Geral",
     val content: String = "",
-    val timestamp: Long = System.currentTimeMillis()
+    val criado_em_: Long = System.currentTimeMillis()
 )

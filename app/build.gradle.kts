@@ -50,9 +50,19 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    // --- Bloco do Firebase Limpo ---
+    // Define a versão de TODAS as bibliotecas Firebase para a 33.1.0
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+
+    // Agora adicione as bibliotecas que você precisa (sem especificar a versão)
     implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-analytics")
+    // --- Fim do Bloco Firebase ---
+
     implementation("androidx.navigation:navigation-compose:2.7.7")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

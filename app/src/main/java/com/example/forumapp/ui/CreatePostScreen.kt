@@ -22,21 +22,42 @@ import com.example.forumapp.R
 @Composable
 fun CreatePostScreen(
     modifier: Modifier = Modifier,
-    onPostCreated: () -> Unit,
-    viewModel: ForumViewModel,
-    onCancel: () -> Unit
+    viewModel: ForumViewModel, // Recebe o ViewModel
+    postId: String?, // Recebe o ID (nulo se for "Criar")
+    onNavigateBack: () -> Unit // Função para voltar
 ) {
+    // Verifica se está em modo de edição
+    val isEditing = postId != null
+
+    // Observa o post selecionado (que o VM vai carregar)
+    val postToEdit by viewModel.selectedPost.collectAsState()
+
+    // Estados locais para o título e conteúdo
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
+
     var isLoading by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // Cor de fundo lilás do seu design (ajuste o hexadecimal se necessário)
+    // Carrega os dados do post se estiver em modo de edição
+    LaunchedEffect(key1 = postId, key2 = postToEdit) {
+        if (isEditing && postId != null) {
+            // 1. Pede ao VM para carregar o post
+            viewModel.getPostById(postId)
+            // 2. Se o post foi carregado, preenche os campos
+            if (postToEdit != null && postToEdit!!.postId == postId) {
+                title = postToEdit!!.topic
+                content = postToEdit!!.content
+            }
+        }
+    }
+
+    // Cor de fundo lilás
     val lightPurpleBackground = Color(0xFFE6DDF3)
 
     Scaffold(
         topBar = {
-            // Reutilizando a mesma TopAppBar da tela de feed
+            // ... (TopAppBar - sem mudanças)
             TopAppBar(
                 title = {
                     Row(
@@ -71,7 +92,7 @@ fun CreatePostScreen(
                 )
             )
         },
-        containerColor = lightPurpleBackground // Aplicando o fundo lilás
+        containerColor = lightPurpleBackground
     ) { paddingValues ->
         Column(
             modifier = modifier
@@ -81,7 +102,8 @@ fun CreatePostScreen(
         ) {
 
             Text(
-                text = "Titulo do forum:",
+                // Muda o título da tela
+                text = if (isEditing) "Editar Post" else "Titulo do forum:",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth()
@@ -115,7 +137,7 @@ fun CreatePostScreen(
                 label = { Text("comente aqui....") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f), // Faz o campo ocupar o espaço restante
+                    .weight(1f),
                 readOnly = isLoading,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
@@ -125,14 +147,13 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Botões
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly // Espaça os botões
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 // Botão Cancelar
                 Button(
-                    onClick = onCancel,
+                    onClick = { onNavigateBack() }, // Apenas volta
                     enabled = !isLoading,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
@@ -152,16 +173,29 @@ fun CreatePostScreen(
                         }
 
                         isLoading = true
-                        viewModel.createPost(title, content) { success ->
-                            isLoading = false
-                            if (success) {
-                                onPostCreated() // Navega de volta
-                            } else {
-                                Toast.makeText(context, "Falha ao criar post", Toast.LENGTH_SHORT).show()
+
+                        // --- LÓGICA DE DECISÃO ---
+                        if (isEditing) {
+                            // MODO DE EDIÇÃO
+                            viewModel.updatePost(postId!!, title, content) { success ->
+                                isLoading = false
+                                if (success) {
+                                    onNavigateBack() // Volta
+                                } else {
+                                    Toast.makeText(context, "Falha ao atualizar", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } else {
+                            // MODO DE CRIAÇÃO
+                            viewModel.createPost(title, content) { success ->
+                                isLoading = false
+                                if (success) {
+                                    onNavigateBack() // Volta
+                                } else {
+                                    Toast.makeText(context, "Falha ao criar", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
-                        Toast.makeText(context, "Post criado!", Toast.LENGTH_SHORT).show()
-                        onPostCreated()
                     },
                     enabled = !isLoading,
                     colors = ButtonDefaults.buttonColors(

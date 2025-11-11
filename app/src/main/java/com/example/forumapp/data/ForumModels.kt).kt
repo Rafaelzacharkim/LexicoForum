@@ -14,3 +14,11 @@ data class Post(
     val content: String = "",
     val criado_em_: Long = System.currentTimeMillis()
 )
+
+data class Comment(
+    val commentId: String = "",
+    val authorId: String = "",
+    val authorName: String = "",
+    val content: String = "",
+    val criado_em_: Long = 0L
+)

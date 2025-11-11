@@ -8,15 +8,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.forumapp.ui.ForumFeedScreen
 import com.example.forumapp.ui.LoginScreen
 import com.example.forumapp.ui.RegisterScreen
 import com.example.forumapp.theme.ForumAppTheme
 import com.example.forumapp.ui.CreatePostScreen
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.forumapp.ui.ForumViewModel
 
 class MainActivity : ComponentActivity() {
@@ -26,6 +27,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ForumAppTheme {
                 val navController = rememberNavController()
+                // Criamos o ViewModel aqui para ser compartilhado
                 val forumViewModel: ForumViewModel = viewModel()
 
                 Surface(
@@ -68,21 +70,34 @@ class MainActivity : ComponentActivity() {
                             ForumFeedScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 viewModel = forumViewModel,
+                                // Navega para "criar" (sem ID)
                                 onCreatePostClick = {
                                     navController.navigate("create_post")
+                                },
+                                // Navega para "editar" (com ID)
+                                onEditPostClick = { postId ->
+                                    navController.navigate("create_post?postId=$postId")
                                 }
                             )
                         }
 
-                        composable("create_post") {
+                        // Rota atualizada para aceitar um ID opcional
+                        composable(
+                            route = "create_post?postId={postId}",
+                            arguments = listOf(navArgument("postId") {
+                                nullable = true
+                                defaultValue = null
+                            })
+                        ) { backStackEntry ->
+                            // Pega o postId da rota
+                            val postId = backStackEntry.arguments?.getString("postId")
+
                             CreatePostScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 viewModel = forumViewModel,
-                                onPostCreated = {
-                                    navController.popBackStack()
-                                },
-                                onCancel = {
-                                    navController.popBackStack()
+                                postId = postId, // Passa o ID (ou null)
+                                onNavigateBack = {
+                                    navController.popBackStack() // Volta
                                 }
                             )
                         }

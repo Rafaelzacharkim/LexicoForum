@@ -19,6 +19,7 @@ import com.example.forumapp.ui.RegisterScreen
 import com.example.forumapp.theme.ForumAppTheme
 import com.example.forumapp.ui.CreatePostScreen
 import com.example.forumapp.ui.ForumViewModel
+import com.example.forumapp.ui.ProfileScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,6 +78,28 @@ class MainActivity : ComponentActivity() {
                                 // Navega para "editar" (com ID)
                                 onEditPostClick = { postId ->
                                     navController.navigate("create_post?postId=$postId")
+                                },
+                                // Navegar para "perfil"
+                                onProfileClick = {
+                                    navController.navigate("profile")
+                                }
+                            )
+                        }
+                        composable("profile") {
+                            ProfileScreen(
+                                modifier = Modifier.fillMaxSize(),
+                                viewModel = forumViewModel,
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                },
+                                onLogout = {
+                                    // Limpa toda a pilha de navegação e vai para o login
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                },
+                                onPostClick = { _ ->
+                                    navController.popBackStack()
                                 }
                             )
                         }

@@ -36,7 +36,8 @@ fun ForumFeedScreen(
     modifier: Modifier = Modifier,
     viewModel: ForumViewModel,
     onCreatePostClick: () -> Unit,
-    onEditPostClick: (String) -> Unit
+    onEditPostClick: (String) -> Unit,
+    onProfileClick: () -> Unit
 ) {
     val lazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -83,7 +84,7 @@ fun ForumFeedScreen(
                                 )
                             }
                             Spacer(modifier = Modifier.weight(1f))
-                            IconButton(onClick = { /*TODO: Perfil*/ }) {
+                            IconButton(onClick = onProfileClick) {
                                 Icon(
                                     imageVector = Icons.Filled.AccountCircle,
                                     contentDescription = "Perfil",
@@ -595,7 +596,7 @@ fun CommentInputBox(onCommentSend: (String) -> Unit) {
 
 // --- Função de Data (sem mudanças) ---
 @Composable
-private fun FormatTimestamp(timestamp: Long): String {
+fun FormatTimestamp(timestamp: Long): String {
     try {
         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR"))
         val date = Date(timestamp)

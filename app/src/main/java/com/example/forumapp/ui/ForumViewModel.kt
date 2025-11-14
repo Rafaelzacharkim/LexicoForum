@@ -114,20 +114,32 @@ class ForumViewModel : ViewModel() {
 
     // --- Funções de Favoritos (sem mudanças) ---
     fun toggleFavorite(postId: String) {
-        // ... (código igual)
-        val userId = auth.currentUser?.uid ?: return
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            Log.w("ForumViewModel", "Usuário não autenticado")
+            return
+        }
+
         val favRef = db.collection("users").document(userId)
             .collection("favorites").document(postId)
 
         viewModelScope.launch {
             try {
                 val isCurrentlyFavorite = _favoritePostIds.value.contains(postId)
+                Log.d("ForumViewModel", "toggleFavorite - postId: $postId, isCurrentlyFavorite: $isCurrentlyFavorite")
+
                 if (isCurrentlyFavorite) {
+                    // Remove dos favoritos
                     favRef.delete().await()
+                    Log.d("ForumViewModel", "Removido dos favoritos")
                 } else {
+                    // Adiciona aos favoritos
                     favRef.set(mapOf("addedAt" to System.currentTimeMillis())).await()
+                    Log.d("ForumViewModel", "Adicionado aos favoritos")
                 }
-            } catch (e: Exception) { /* ... */ }
+            } catch (e: Exception) {
+                Log.e("ForumViewModel", "Erro ao favoritar/desfavoritar", e)
+            }
         }
     }
     private fun fetchUserFavorites() {
